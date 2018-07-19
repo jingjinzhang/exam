@@ -1,0 +1,250 @@
++++
+title = "2018-07-18"
+weight = 94
++++
+
+# Java语言进阶
+
+## Java集合详解
+
+### Collection接口
+1. 集合可以理解为一个动态的对象数组，不同的是集合中的对象内容可以任意扩充。
+2. 集合特点：
+    性能高
+    容易拓展和修改
+3. Collection的常用子类
+    List
+    Set
+    Queue
+
+#### List
+1. List接口可以存放任意的数据，而且在List接口内容是可以重复的
+2. List常用接口
+    ArrayList 采用异步处理方式，性能高，非线城安全
+    Vector 采用同步，线程安全 
+
+#### Set
+1. Set接口不能加入重复元素，可以排序。
+2. Set接口常用子类
+    散列存放：HashSet
+    有序存放：TreeSet
+
+### Iterator
+1. 集合输出的标准操作
+2. 操作原理：
+    Iterator是专门的迭代输出接口，迭代输出就是将元素一个个进行判断，判断是否有内容，若有则取出。
+
+### Map接口
+1. 保存形式：
+    key->value
+2. 常用子类：
+    HashMap：无序存放，key不允许重复，非线程安全，速度快，支持null key 和null value
+    HashTable：无序存放，key不允许重复，线程安全
+    ConcurrentHashMap：取代了hashtable
+
+## 本地文件操作
+
+### File
+
+1. 文件创建、重命名、删除
+```shell
+File file = new File("hello.txt");
+if(file.exists()){
+    if(file.isDirectory()){
+        System.out.println("该文件是目录！");
+    }
+    if(file.isFile()){
+        System.out.println("该文件是文件！");
+    }
+}else{
+    System.out.println("文件不存在！");
+}
+```
+2. 对文件属性的读取
+```shell
+System.out.println("文件存在: "+file.getName());
+
+System.out.println("相对路径: "+file.getPath());
+
+System.out.println("绝对路径: "+file.getAbsolutePath());
+
+System.out.println("父级路径: "+file.getParent());
+
+System.out.println("文件大小: "+file.length()/1000.0+"KB");
+
+System.out.println("判断文件是否被隐藏: "+file.isHidden());
+
+System.out.println("判断文件是否可写: "+file.canWrite());
+
+System.out.println("判断文件是否可读: "+file.canRead());
+```
+
+3. 文件属性设置
+```shell
+// 设置文件可读
+file.setReadable(true);
+// 设置文件可写
+file.setWritable(true);
+// 设置只读
+file.setReadOnly();
+```
+4. 遍历文件夹
+```shell
+public static void main(String[] args) {
+    File file = new File("../test0718");
+    printFile(file,1);
+
+}
+public static void printFile(File dir,int tab){
+    if(dir.isDirectory()){
+        File[] files = dir.listFiles();
+        for(int i = 0; i<files.length; i++){
+            for(int j = 0; j < tab; j++){
+                System.out.print("|-");
+            }
+            System.out.println(files[i].getName());
+            if(files[i].isDirectory()){
+                printFile(files[i],++tab);
+            }
+        }
+    }
+}
+```
+
+5. 文件的简单读写
+```shell
+File file = new File("test1/text.txt");
+
+//读
+FileInputStream fis = null;
+InputStreamReader isr = null;
+BufferedReader br = null;
+try {
+    fis = new FileInputStream(file);
+    isr = new InputStreamReader(fis,"UTF-8");
+    br = new BufferedReader(isr);
+
+    String line = null;
+    while((line = br.readLine()) != null){
+        System.out.println(line);
+    }
+    br.close();
+    isr.close();
+    fis.close();
+} catch (FileNotFoundException e) {
+    e.printStackTrace();
+} catch (UnsupportedEncodingException e) {
+    e.printStackTrace();
+} catch (IOException e) {
+    e.printStackTrace();
+}
+
+//写
+try {
+    FileOutputStream fos = new FileOutputStream(file);
+    OutputStreamWriter osw = new OutputStreamWriter(fos,"UTF-8");
+    BufferedWriter bw = new BufferedWriter(osw);
+    bw.write("12345\n");
+    bw.write("上山打老虎\n");
+    bw.close();
+    osw.close();
+    fos.close();
+} catch (FileNotFoundException e) {
+    e.printStackTrace();
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+## Java IO简介
+
+### 字节流
+可以处理所有类型的数据，如MP3、图片、文字、视频等，读取时，读到一个返回一个字节。
+在Java中对应的类都以Stream结尾。
+```shell
+File file = new File("test1/text.txt");
+
+try {
+    FileInputStream fis = new FileInputStream(file);
+    byte[] bytes = new byte[1024];
+    fis.read(bytes);
+    String inputString = new String(bytes,"UTF-8");
+    System.out.println(inputString);
+    fis.close();
+} catch (FileNotFoundException e) {
+    e.printStackTrace();
+} catch (IOException e) {
+    e.printStackTrace();
+}
+
+try {
+    FileOutputStream fos = new FileOutputStream(file);
+    String outString = "you look beautiful tonight!";
+    fos.write(outString.getBytes("UTF-8"));
+    fos.close();
+} catch (FileNotFoundException e) {
+    e.printStackTrace();
+} catch (UnsupportedEncodingException e) {
+    e.printStackTrace();
+} catch (IOException e) {
+    e.printStackTrace();
+}
+
+// copy文件
+ File file = new File("test1/beautifulgirl.jpg");
+File file2 = new File("test1/baby.jpg");
+try {
+    FileInputStream fis = new FileInputStream(file);
+    FileOutputStream fos = new FileOutputStream(file2);
+    byte[] bytes = new byte[20];
+    while (fis.read(bytes) != -1){
+        fos.write(bytes);
+    }
+    System.out.println("读取完成");
+    fis.close();
+    fos.close();
+} catch (FileNotFoundException e) {
+    e.printStackTrace();
+} catch (IOException e) {
+    e.printStackTrace();
+}
+
+// 缓冲流 buffered
+BufferedInputStream中默认的缓冲大小是8192个字节。缓冲大小实际上是从输入设备中准备读取的块的平均大小。这就是为什么它经常值得精确地提高至64K(65536)， 万一有非常大的输入文件 — 那些在512K和2M的文件，为了更深一层地减少磁盘读入的数量。许多专家也建议将此值设置为4096的整数倍 — 一个普通磁盘扇区的大小。
+
+File file = new File("test1/baby.jpg");
+File file2 = new File("test1/baby2.jpg");
+try {
+    FileInputStream fis = new FileInputStream(file);
+    BufferedInputStream bis = new BufferedInputStream(fis,10000); //缓冲区大小
+    FileOutputStream fos = new FileOutputStream(file2);
+    BufferedOutputStream bos = new BufferedOutputStream(fos,10000); //缓冲区大小
+    byte[] bytes = new byte[10000];
+    int count = 0;
+    while (bis.read(bytes) != -1){
+       count++;
+        bos.write(bytes);
+    }
+    System.out.println("读取完成,读取了"+count+"次,一共"+count*100/1024.0+"KB");
+    bos.close();
+    fos.close();
+    bis.close();
+    fis.close();
+} catch (FileNotFoundException e) {
+    e.printStackTrace();
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+
+
+
+
+
+
+
+### 字符流
+仅能处理纯文本数据，如txt文本等。在读取时，读到一个或者多个字节，先查编码表，然后在返回查到的字符。
+在Java中对应的类都以Reader或Writer结尾。
+
